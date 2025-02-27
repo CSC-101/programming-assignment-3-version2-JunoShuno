@@ -1,7 +1,8 @@
 import data
 import build_data
 import unittest
-
+from data import CountyDemographics
+from hw3 import *
 
 # These two values are defined to support testing below. The
 # data within these structures should not be modified. Doing
@@ -179,30 +180,153 @@ class TestCases(unittest.TestCase):
     pass
 
     # Part 1
+    def test_population_total(self):
+        # Test Case 1: Two counties with known populations
+        county1 = data.CountyDemographics(
+            {}, "County A", {}, {}, {}, {'2014 Population': 100000}, "State X"
+        )
+        county2 = data.CountyDemographics(
+            {}, "County B", {}, {}, {}, {'2014 Population': 200000}, "State Y"
+        )
+        assert population_total([county1, county2]) == 300000
+
+        # Test Case 2: Empty list of counties
+        assert population_total([]) == 0
     # test population_total
 
     # Part 2
+    def test_filter_by_state(self):
+        county1 = CountyDemographics({}, "County A", {}, {}, {}, {}, "CA")
+        county2 = CountyDemographics({}, "County B", {}, {}, {}, {}, "CA")
+        county3 = CountyDemographics({}, "County C", {}, {}, {}, {}, "TX")
+
+        # Test Case 1: Filtering California counties
+        assert filter_by_state([county1, county2, county3], "CA") == [county1, county2]
+
+        # Test Case 2: No matching state
+        assert filter_by_state([county1, county2, county3], "NY") == []
+
+        # Test Case 3: Empty input list
+        assert filter_by_state([], "CA") == []
+
     # test filter_by_state
 
     # Part 3
+    def test_population_by_education(self):
+        county1 = CountyDemographics({}, "County A", {"Bachelor's Degree or Higher": 30.0}, {}, {},
+                                     {'2014 Population': 100000}, "CA")
+        county2 = CountyDemographics({}, "County B", {"Bachelor's Degree or Higher": 40.0}, {}, {},
+                                     {'2014 Population': 200000}, "CA")
+
+        # (30% of 100,000) + (40% of 200,000) = 30,000 + 80,000 = 110,000
+        assert population_by_education([county1, county2], "Bachelor's Degree or Higher") == 110000.0
+
+    def test_population_by_ethnicity(self):
+        county1 = CountyDemographics({}, "County A", {}, {"Hispanic or Latino": 20.0}, {}, {'2014 Population': 100000},
+                                     "CA")
+        county2 = CountyDemographics({}, "County B", {}, {"Hispanic or Latino": 30.0}, {}, {'2014 Population': 200000},
+                                     "CA")
+
+        # (20% of 100,000) + (30% of 200,000) = 20,000 + 60,000 = 80,000
+        assert population_by_ethnicity([county1, county2], "Hispanic or Latino") == 80000.0
+
+    def test_population_below_poverty_level(self):
+        county1 = CountyDemographics({}, "County A", {}, {}, {"Persons Below Poverty Level": 15.0},
+                                     {'2014 Population': 100000}, "CA")
+        county2 = CountyDemographics({}, "County B", {}, {}, {"Persons Below Poverty Level": 10.0},
+                                     {'2014 Population': 200000}, "CA")
+
+        # (15% of 100,000) + (10% of 200,000) = 15,000 + 20,000 = 35,000
+        assert population_below_poverty_level([county1, county2]) == 35000.0
     # test population_by_education
     # test population_by_ethnicity
     # test population_below_poverty_level
 
     # Part 4
-    # test percent_by_education
-    # test percent_by_ethnicity
-    # test percent_below_poverty_level
+    def test_percent_by_education(self):
+        county1 = CountyDemographics({}, "County A", {"Bachelor's Degree or Higher": 30.0}, {}, {},
+                                     {'2014 Population': 100000}, "CA")
+        county2 = CountyDemographics({}, "County B", {"Bachelor's Degree or Higher": 40.0}, {}, {},
+                                     {'2014 Population': 200000}, "CA")
+
+        # Total population: 300,000
+        # Total Bachelor's sub-population: 110,000
+        # (110,000 / 300,000) * 100 = 36.67%
+        assert round(percent_by_education([county1, county2], "Bachelor's Degree or Higher"), 2) == 36.67
+
+    def test_percent_by_ethnicity(self):
+        county1 = CountyDemographics({}, "County A", {}, {"Hispanic or Latino": 20.0}, {}, {'2014 Population': 100000},
+                                     "CA")
+        county2 = CountyDemographics({}, "County B", {}, {"Hispanic or Latino": 30.0}, {}, {'2014 Population': 200000},
+                                     "CA")
+
+        # Total Hispanic sub-population: 80,000
+        # (80,000 / 300,000) * 100 = 26.67%
+        assert round(percent_by_ethnicity([county1, county2], "Hispanic or Latino"), 2) == 26.67
+
+    def test_percent_below_poverty_level(self):
+        county1 = CountyDemographics({}, "County A", {}, {}, {"Persons Below Poverty Level": 15.0},
+                                     {'2014 Population': 100000}, "CA")
+        county2 = CountyDemographics({}, "County B", {}, {}, {"Persons Below Poverty Level": 10.0},
+                                     {'2014 Population': 200000}, "CA")
+
+        # Total below poverty level: 35,000
+        # (35,000 / 300,000) * 100 = 11.67%
+        assert round(percent_below_poverty_level([county1, county2]), 2) == 11.67
 
     # Part 5
-    # test education_greater_than
-    # test education_less_than
-    # test ethnicity_greater_than
-    # test ethnicity_less_than
-    # test below_poverty_level_greater_than
-    # test below_poverty_level_less_than
+    def setUp(self):
+        """Create test data with different demographic distributions."""
+        self.county1 = CountyDemographics(
+            age={}, county="County A",
+            education={"Bachelor's Degree or Higher": 35.0},
+            ethnicities={"Hispanic or Latino": 25.0, "White Alone": 70.0},
+            income={'Persons Below Poverty Level': 12.5},
+            population={'2014 Population': 50000}, state="CA"
+        )
+
+        self.county2 = CountyDemographics(
+            age={}, county="County B",
+            education={"Bachelor's Degree or Higher": 50.0},
+            ethnicities={"Hispanic or Latino": 40.0, "White Alone": 55.0},
+            income={'Persons Below Poverty Level': 20.0},
+            population={'2014 Population': 75000}, state="TX"
+        )
+
+        self.county3 = CountyDemographics(
+            age={}, county="County C",
+            education={"Bachelor's Degree or Higher": 20.0},
+            ethnicities={"Hispanic or Latino": 10.0, "White Alone": 85.0},
+            income={'Persons Below Poverty Level': 8.0},
+            population={'2014 Population': 100000}, state="NY"
+        )
+
+        self.counties = [self.county1, self.county2, self.county3]
+    def test_education_greater_than(self):
+        result = education_greater_than(self.counties, "Bachelor's Degree or Higher", 30.0)
+        self.assertEqual(len(result), 2)  # County A and County B should be included
+
+    def test_education_less_than(self):
+        result = education_less_than(self.counties, "Bachelor's Degree or Higher", 30.0)
+        self.assertEqual(len(result), 1)  # Only County C should be included
+
+    def test_ethnicity_greater_than(self):
+        result = ethnicity_greater_than(self.counties, "Hispanic or Latino", 30.0)
+        self.assertEqual(len(result), 1)  # Only County B should be included
+
+    def test_ethnicity_less_than(self):
+        result = ethnicity_less_than(self.counties, "Hispanic or Latino", 30.0)
+        self.assertEqual(len(result), 2)  # County A and County C should be included
+
+    def test_below_poverty_level_greater_than(self):
+        result = below_poverty_level_greater_than(self.counties, 15.0)
+        self.assertEqual(len(result), 1)  # Only County B should be included
+
+    def test_below_poverty_level_less_than(self):
+        result = below_poverty_level_less_than(self.counties, 15.0)
+        self.assertEqual(len(result), 2)
 
 
-
+"w"
 if __name__ == '__main__':
     unittest.main()
